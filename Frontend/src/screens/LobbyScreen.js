@@ -21,7 +21,7 @@ const LobbyScreen = () => {
   }, [navigate])
 
   useEffect(() => {
-    const stream = navigator.mediaDevices.getUserMedia({ audio: true, video: true })
+    // const stream = navigator.mediaDevices.getUserMedia({ audio: true, video: true })
 
     // async function getUser() {
     //   let users = await fetch('https://randomuser.me/api/?results=2');

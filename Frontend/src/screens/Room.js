@@ -15,99 +15,93 @@ const Room = () => {
     const [myStream, setMyStream] = useState()
     const [remoteStream, setRemoteStream] = useState()
 
-    const handleUserJoined = useCallback(async ({ name, id }) => {
+    const handleUserJoined = async ({ name, id }) => {
         console.log('User joined', { name, id });
+        // await createMyStream();
         setRemoteSocketId(id)
         if (id) {
-            // handleCallUser()
-
-            // send offer to new user who are joind recently 
             const offer = await peer.getOffer();
-            socket.emit("user:call", {
-                to: id, offer
-            })
+            socket.emit("user:call", { to: id, offer })
         }
-    }, [])
+    }
 
+
+    const createMyStream = async () => {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true })
+        setMyStream(stream)
+        for (const track of stream.getTracks()) {
+            peer.peer.addTrack(track, stream)
+        }
+    }
 
 
     const handleIncomingCall = useCallback(async ({ from, offer }) => {
         console.log('incoming Call', { from, offer });
         setRemoteSocketId(from)
-        // const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true })
-        // setMyStream(stream)
+
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true })
+        setMyStream(stream)
+        for (const track of stream.getTracks()) {
+            peer.peer.addTrack(track, stream)
+        }
+
         const anw = await peer.getAnswer(offer)
         socket.emit('call:accepted', { to: from, anw })
     }, [socket])
 
-
-    const handleEndCall = useCallback(() => {
-        // Close the peer connection and clean up resources
-        if (peer.peer) {
-            peer.peer.close();
-        }
-        // You may want to reset states or perform other cleanup operations
-        setMyStream(null);
-        setRemoteStream(null);
-        setRemoteSocketId(null);
-
-        // Navigate back to the previous page or any other desired location
-        navigate(-1);
-    }, [peer.peer, navigate]);
-
-
-    const sendStream = useCallback(() => {
-        for (const track of myStream.getTracks()) {
-            peer.peer.addTrack(track, myStream)
-        }
-    }, [myStream])
-
-    const handleCallAccepted = useCallback(async ({ from, anw }) => {
-        // sendStream()
+    const handleCallAccepted = async ({ from, anw }) => {
         console.warn("call accepted_____________________",anw);
         // await peer.setRemoteDescription(anw)
-        await peer.peer.setRemoteDescription(new RTCSessionDescription(anw))
-        // socket.emit('user:startCall', { to: from })
-    }, [sendStream])
+        await peer.peer.setRemoteDescription(anw)
+    }
 
-    const handleNegoNeeded = useCallback(async () => {
-        const offer = await peer.getOffer();
-        socket.emit('peer:nego:needed', { offer, to: remoteSocketId })
-    }, [remoteSocketId, socket])
+
+
+
+
+
 
     useEffect(() => {
-        peer.peer.addEventListener('negotiationneeded', handleNegoNeeded)
+        createMyStream()
+        const handleIceCandidate = (event) => {
+          if (event.candidate) {
+            // Send the ICE candidate to the remote peer
+            console.log(event.candidate);
+          }
+        };
+    
+        const handleNegotiationNeeded = async (event) => {
+          // Handle negotiation needed event
+          console.log(event);
+        };
+    
+    
+        const handleTrack = (event) => {
+          setRemoteStream(event.streams[0]);
+        };
+    
+    
+        // Set up event listeners
+        peer.peer.addEventListener('icecandidate', handleIceCandidate);
+        peer.peer.addEventListener('negotiationneeded', handleNegotiationNeeded);
+        peer.peer.addEventListener('track', handleTrack);
+    
         return () => {
-            peer.peer.removeEventListener('negotiationneeded', handleNegoNeeded)
-        }
-    }, [handleNegoNeeded]);
-
-    const handleNegoNeedIncoming = useCallback(async ({ from, offer }) => {
-        console.log('============>>>', from);
-        const anw = await peer.getAnswer(offer)
-        socket.emit('peer:nego:done', { to: from, anw })
-    }, [socket])
-
-
-    const handleNegoNeedFinal = useCallback(({ anw }) => {
-        peer.setLocalDescription(anw)
-    }, [])
-
-    useEffect(() => {
-        peer.peer.addEventListener('track', async ev => {
-            const remoteStream = ev.streams
-            console.log("got tracks");
-            setRemoteStream(remoteStream[0]);
-        })
-        setLocalStream()
-        // const offer = peer.getOffer();
-        // peer.peer.setLocalDescription(offer)
-    }, []);
+          // Clean up event listeners
+          peer.peer.removeEventListener('icecandidate', handleIceCandidate);
+          peer.peer.removeEventListener('negotiationneeded', handleNegotiationNeeded);
+          peer.peer.removeEventListener('track', handleTrack);
+        };
+      }, []);
 
     const setLocalStream = async () => {
         try {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true })
-            setMyStream(stream)
+            // const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true })
+            // setMyStream(stream)
+            // for (const track of myStream.getTracks()) {
+            //     peer.peer.addTrack(track, myStream)
+            // }
+
         } catch (error) {
             if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
                 console.error('Media devices not found.');
@@ -130,23 +124,12 @@ const Room = () => {
         socket.on('user:joined', handleUserJoined)
         socket.on('incoming:call', handleIncomingCall)
         socket.on('call:accepted', handleCallAccepted)
-        socket.on('peer:nego:needed', handleNegoNeedIncoming)
-        socket.on('peer:nego:final', handleNegoNeedFinal)
-
-        // socket.on('user:startCall', (data) => {
-        //     console.log("user:startCall_______________", data);
-        //     // sendStream()
-        // })
-
         return () => {
             socket.off('user:joined', handleUserJoined)
             socket.off('incoming:call', handleIncomingCall)
             socket.off('call:accepted', handleCallAccepted)
-            socket.off('peer:nego:needed', handleNegoNeedIncoming)
-            socket.off('peer:nego:final', handleNegoNeedFinal)
-            // socket.off('user:startCall', handleNegoNeedFinal)
         };
-    }, [socket, handleUserJoined, handleIncomingCall, handleCallAccepted, handleNegoNeedIncoming, handleNegoNeedFinal]);
+    }, [socket, handleUserJoined, handleIncomingCall, handleCallAccepted]);
 
 
 
@@ -160,7 +143,7 @@ const Room = () => {
         }}>
             <h1>Welcome</h1>
             <h4>{remoteSocketId ? 'Connected' : "Finding user..."}</h4>
-            {myStream && <button onClick={sendStream}>send stream</button>}
+            {/* {myStream && <button onClick={sendStream}>send stream</button>} */}
             {/* {myStream && <button onClick={handleEndCall}>End Call</button>} */}
 
             <div style={{
@@ -170,14 +153,18 @@ const Room = () => {
                 {myStream && <>
                     <div style={{ margin: '10px' }}>
                         <h1 style={{ fontSize: '15px' }}>my stream <p style={{ fontSize: '18px', color: 'green', marginTop: '10px' }}>{socket.id}</p> </h1>
-                        <ReactPlayer playing height="360px" width="400px" url={myStream} />
+                        <ReactPlayer playing muted height="360px" width="400px" url={myStream} 
+                            style={{ transform: 'scaleX(-1)' }}
+                        />
                     </div>
                 </>}
 
                 {remoteStream && <>
                     <div style={{ margin: '10px' }}>
                         <h1 style={{ fontSize: '15px' }}>remote stream <p style={{ fontSize: '18px', color: 'green', marginTop: '10px' }}>{socket.id}</p> </h1>
-                        <ReactPlayer playing height="360px" width="400px" url={remoteStream} />
+                        <ReactPlayer playing height="360px" width="400px" url={remoteStream} 
+                            style={{ transform: 'scaleX(-1)' }}
+                        />
                     </div>
 
                 </>}

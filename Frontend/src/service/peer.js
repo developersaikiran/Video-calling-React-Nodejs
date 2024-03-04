@@ -38,7 +38,7 @@ class PeerService {
     async getOffer() {
         try {
             const offer = await this.peer.createOffer();
-            await this.peer.setLocalDescription(offer);
+            await this.peer.setLocalDescription(new RTCSessionDescription(offer));
             return offer;
         } catch (error) {
             console.error('Error creating offer:', error);
