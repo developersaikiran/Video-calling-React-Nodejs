@@ -4,7 +4,9 @@ import { useNavigate } from 'react-router-dom'
 import './style.css';
 
 const LobbyScreen = () => {
-  const [name, setName] = useState('abcd');
+  const [name, setName] = useState('');
+  const [gender, setGender] = useState('');
+  const [lookingFor, setLookingFor] = useState('');
   const navigate = useNavigate()
   console.log({socket: socket.id});
 
