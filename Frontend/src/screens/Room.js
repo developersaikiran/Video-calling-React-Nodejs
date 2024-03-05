@@ -53,6 +53,15 @@ const Room = () => {
         console.warn("call accepted_____________________",anw);
         // await peer.setRemoteDescription(anw)
         await peer.peer.setRemoteDescription(anw)
+
+        // socket.emit("user:call", { to: from, offer })
+        const offer = await peer.peer.createOffer();
+        socket.emit("user:startCall", { to: from, offer })
+    }
+
+    const handleCallStarted = async ({ from, anw }) => {
+        console.warn("call Started receive_____________________",anw);
+        await peer.peer.setRemoteDescription(anw)
     }
 
 
@@ -124,10 +133,12 @@ const Room = () => {
         socket.on('user:joined', handleUserJoined)
         socket.on('incoming:call', handleIncomingCall)
         socket.on('call:accepted', handleCallAccepted)
+        socket.on('user:startCall', handleCallStarted)
         return () => {
             socket.off('user:joined', handleUserJoined)
             socket.off('incoming:call', handleIncomingCall)
             socket.off('call:accepted', handleCallAccepted)
+            socket.off('user:startCall', handleCallStarted)
         };
     }, [socket, handleUserJoined, handleIncomingCall, handleCallAccepted]);
 
@@ -161,7 +172,7 @@ const Room = () => {
 
                 {remoteStream && <>
                     <div style={{ margin: '10px' }}>
-                        <h1 style={{ fontSize: '15px' }}>remote stream <p style={{ fontSize: '18px', color: 'green', marginTop: '10px' }}>{socket.id}</p> </h1>
+                        <h1 style={{ fontSize: '15px' }}>remote stream <p style={{ fontSize: '18px', color: 'green', marginTop: '10px' }}>{remoteSocketId}</p> </h1>
                         <ReactPlayer playing height="360px" width="400px" url={remoteStream} 
                             style={{ transform: 'scaleX(-1)' }}
                         />

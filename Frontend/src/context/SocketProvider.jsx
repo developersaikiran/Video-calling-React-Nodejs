@@ -17,6 +17,7 @@
 
 import { io } from "socket.io-client";
 export const socket = io("http://localhost:8000/", {
+// export const socket = io("https://11nwvdk1-8000.inc1.devtunnels.ms/", {
    path: `/socket.io`,
    transports: ['websocket']
 }).connect();

@@ -64,9 +64,9 @@ io.on('connection', (socket) => {
     io.to(to).emit('peer:nego:needed', { from: socket.id, offer })
   })
 
-  socket.on('user:startCall', ({ to }) => {
+  socket.on('user:startCall', ({ to, offer }) => {
     console.log('user:startCall________', { to });
-    io.to(to).emit('user:startCall', { from: socket.id })
+    io.to(to).emit('user:startCall', { from: to, anw: offer })
   })
 
   socket.on('peer:nego:done', ({ to, anw }) => {
