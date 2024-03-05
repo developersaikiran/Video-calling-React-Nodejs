@@ -50,18 +50,13 @@ const Room = () => {
     }, [socket])
 
     const handleCallAccepted = async ({ from, anw }) => {
-        console.warn("call accepted_____________________",anw);
-        // await peer.setRemoteDescription(anw)
-        await peer.peer.setRemoteDescription(anw)
-
-        // socket.emit("user:call", { to: from, offer })
-        const offer = await peer.peer.createOffer();
-        socket.emit("user:startCall", { to: from, offer })
+        console.warn("call accepted_____________________", anw);
+        await peer.setRemoteDescription(anw)
     }
 
     const handleCallStarted = async ({ from, anw }) => {
-        console.warn("call Started receive_____________________",anw);
-        await peer.peer.setRemoteDescription(anw)
+        console.warn("call Started receive_____________________", anw);
+        // await peer.setRemoteDescription(anw)
     }
 
 
@@ -73,35 +68,46 @@ const Room = () => {
     useEffect(() => {
         createMyStream()
         const handleIceCandidate = (event) => {
-          if (event.candidate) {
-            // Send the ICE candidate to the remote peer
-            console.log(event.candidate);
-          }
+            if (event.candidate) {
+                // Send the ICE candidate to the remote peer
+                console.log(event.candidate);
+            }
         };
-    
+
         const handleNegotiationNeeded = async (event) => {
-          // Handle negotiation needed event
-          console.log(event);
+            // Handle negotiation needed event
+            console.log('Negotiation needed:', event);
+            try {
+                // Create a new offer
+                const offer = await peer.peer.createOffer();
+                // Set the local description with the new offer
+                await peer.peer.setLocalDescription(offer);
+
+                // Send the offer to the remote peer
+                // socket.emit('user:startCall', { to: remoteSocketId, offer });
+            } catch (error) {
+                console.error('Error during negotiation:', error);
+            }
         };
-    
-    
+
+
         const handleTrack = (event) => {
-          setRemoteStream(event.streams[0]);
+            setRemoteStream(event.streams[0]);
         };
-    
-    
+
+
         // Set up event listeners
         peer.peer.addEventListener('icecandidate', handleIceCandidate);
         peer.peer.addEventListener('negotiationneeded', handleNegotiationNeeded);
         peer.peer.addEventListener('track', handleTrack);
-    
+
         return () => {
-          // Clean up event listeners
-          peer.peer.removeEventListener('icecandidate', handleIceCandidate);
-          peer.peer.removeEventListener('negotiationneeded', handleNegotiationNeeded);
-          peer.peer.removeEventListener('track', handleTrack);
+            // Clean up event listeners
+            peer.peer.removeEventListener('icecandidate', handleIceCandidate);
+            peer.peer.removeEventListener('negotiationneeded', handleNegotiationNeeded);
+            peer.peer.removeEventListener('track', handleTrack);
         };
-      }, []);
+    }, []);
 
     const setLocalStream = async () => {
         try {
@@ -133,12 +139,12 @@ const Room = () => {
         socket.on('user:joined', handleUserJoined)
         socket.on('incoming:call', handleIncomingCall)
         socket.on('call:accepted', handleCallAccepted)
-        socket.on('user:startCall', handleCallStarted)
+        // socket.on('user:startCall', handleCallStarted)
         return () => {
             socket.off('user:joined', handleUserJoined)
             socket.off('incoming:call', handleIncomingCall)
             socket.off('call:accepted', handleCallAccepted)
-            socket.off('user:startCall', handleCallStarted)
+            // socket.off('user:startCall', handleCallStarted)
         };
     }, [socket, handleUserJoined, handleIncomingCall, handleCallAccepted]);
 
@@ -164,7 +170,7 @@ const Room = () => {
                 {myStream && <>
                     <div style={{ margin: '10px' }}>
                         <h1 style={{ fontSize: '15px' }}>my stream <p style={{ fontSize: '18px', color: 'green', marginTop: '10px' }}>{socket.id}</p> </h1>
-                        <ReactPlayer playing muted height="360px" width="400px" url={myStream} 
+                        <ReactPlayer playing muted height="360px" width="400px" url={myStream}
                             style={{ transform: 'scaleX(-1)' }}
                         />
                     </div>
@@ -173,7 +179,7 @@ const Room = () => {
                 {remoteStream && <>
                     <div style={{ margin: '10px' }}>
                         <h1 style={{ fontSize: '15px' }}>remote stream <p style={{ fontSize: '18px', color: 'green', marginTop: '10px' }}>{remoteSocketId}</p> </h1>
-                        <ReactPlayer playing height="360px" width="400px" url={remoteStream} 
+                        <ReactPlayer playing height="360px" width="400px" url={remoteStream}
                             style={{ transform: 'scaleX(-1)' }}
                         />
                     </div>

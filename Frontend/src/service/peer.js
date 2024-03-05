@@ -28,7 +28,8 @@ class PeerService {
 
     async setRemoteDescription(anw) {
         try {
-            await this.peer.setRemoteDescription(new RTCSessionDescription(anw));
+            // await this.peer.setRemoteDescription(new RTCSessionDescription(anw));
+            await this.peer.setRemoteDescription(anw);
         } catch (error) {
             console.error('Error setting remote description:', error);
             throw error;
