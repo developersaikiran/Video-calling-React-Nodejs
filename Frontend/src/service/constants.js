@@ -1,15 +1,15 @@
-const gender = [
+export const genderLists = [
     {
         id: 1,
         name: "Male"
     },
     {
-        id: 1,
-        name: "Male"
+        id: 2,
+        name: "Female"
     }
 ]
 
-const lookingFor = [
+export const lookingForLists = [
     {
         id: 1,
         name: "Male"

@@ -6,15 +6,24 @@ import peer from '../service/peer'
 import { useNavigate } from 'react-router-dom'
 import Pulsating from "../components/pulse";
 import './Room.css'
+import LobbyScreen from './LobbyScreen'
 
 
 const Room = () => {
-
-    const navigate = useNavigate()
     // const socket = useSocket()
     const [remoteSocketId, setRemoteSocketId] = useState(null)
     const [myStream, setMyStream] = useState()
     const [remoteStream, setRemoteStream] = useState()
+    const [isDarkMode, setDarkMode] = useState(false);
+    const [showChatBox, setShowChatbox] = useState(false);
+
+    const toggleDarkMode = () => {
+        setDarkMode(!isDarkMode);
+    };
+
+    const toggleShowChatBox = () => {
+        setShowChatbox(!showChatBox);
+    };
 
     const handleUserJoined = async ({ name, id }) => {
         console.log('User joined', { name, id });
@@ -28,10 +37,24 @@ const Room = () => {
 
 
     const createMyStream = async () => {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true })
-        setMyStream(stream)
-        for (const track of stream.getTracks()) {
-            peer.peer.addTrack(track, stream)
+        try{
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true })
+            setMyStream(stream)
+            for (const track of stream.getTracks()) {
+                peer.peer.addTrack(track, stream)
+            }
+        } catch (error) {
+            if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
+                console.error('Media devices not found.');
+            } else if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+                console.error('Permission to access media devices was denied.');
+            } else if (error.name === 'NotReadableError' || error.name === 'TrackStartError') {
+                console.error('Media devices are not readable.');
+            } else if (error.name === 'OverconstrainedError' || error.name === 'ConstraintNotSatisfiedError') {
+                console.error('Constraints specified for media devices are not satisfied.');
+            } else {
+                console.error('Error accessing user media:', error);
+            }
         }
     }
 
@@ -59,10 +82,6 @@ const Room = () => {
         console.warn("call Started receive_____________________", anw);
         // await peer.setRemoteDescription(anw)
     }
-
-
-
-
 
 
 
@@ -110,28 +129,6 @@ const Room = () => {
         };
     }, []);
 
-    const setLocalStream = async () => {
-        try {
-            // const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true })
-            // setMyStream(stream)
-            // for (const track of myStream.getTracks()) {
-            //     peer.peer.addTrack(track, myStream)
-            // }
-
-        } catch (error) {
-            if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
-                console.error('Media devices not found.');
-            } else if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
-                console.error('Permission to access media devices was denied.');
-            } else if (error.name === 'NotReadableError' || error.name === 'TrackStartError') {
-                console.error('Media devices are not readable.');
-            } else if (error.name === 'OverconstrainedError' || error.name === 'ConstraintNotSatisfiedError') {
-                console.error('Constraints specified for media devices are not satisfied.');
-            } else {
-                console.error('Error accessing user media:', error);
-            }
-        }
-    }
 
 
 
@@ -150,22 +147,18 @@ const Room = () => {
     }, [socket, handleUserJoined, handleIncomingCall, handleCallAccepted]);
 
 
-    const [isDarkMode, setDarkMode] = useState(false);
-    const [showChatBox, setShowChatbox] = useState(false);
-
-    const toggleDarkMode = () => {
-        setDarkMode(!isDarkMode);
-    };
-
-    const toggleShowChatBox = () => {
-        setShowChatbox(!showChatBox);
-    };
 
     return (
         <body className={`${isDarkMode ? 'dark' : ''} `}>
+            
             <div className={`app-container`}>
-                {/* <link href="https://fonts.googleapis.com/css?family=DM+Sans:400,500,700&display=swap" rel="stylesheet"></link> */}
-                {/* <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js" /> */}
+                <LobbyScreen userConnect={(data)=>{
+                    console.log(data);
+                }} />
+            </div>
+
+            <div className={`app-container`}>
+
                 <button className="mode-switch" onClick={toggleDarkMode}>
                     <svg className="sun" fill="none" stroke="#fbb046" stroke-linecap="round" stroke-linejoin="round"
                         stroke-width="2" class="feather feather-sun" viewBox="0 0 24 24">
@@ -180,6 +173,11 @@ const Room = () => {
                         <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
                     </svg>
                 </button>
+                
+                {
+
+                }
+
                 <div className="left-side" style={{ display: 'none' }}>
                     <div className="navigation">
                         <a href="#" className="nav-link icon">
