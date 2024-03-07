@@ -16,7 +16,8 @@
 // }
 
 import { io } from "socket.io-client";
-export const socket = io("http://localhost:8000/", {
+// export const socket = io("http://localhost:8000/", {
+export const socket = io("http://192.168.1.154:8000/", {
 // export const socket = io("https://video-calling-react-nodejs.onrender.com", {
    path: `/socket.io`,
    transports: ['websocket']

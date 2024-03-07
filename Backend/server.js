@@ -6,48 +6,80 @@ const io = new Server(8000, {
 
 const nameToSocketMap = new Map();
 const socketIdToName = new Map();
-var room = 0
+var roomId = 0
 var roomMembers = []
-
+var males = []
+var females = []
 
 io.on('connection', (socket) => {
   // console.log('socket connected', socket.id);
 
   socket.on('room:join', (data) => {
-    const { name } = data
-    nameToSocketMap.set(name, socket.id)
-    socketIdToName.set(socket.id, name)
-
-    if (roomMembers.length >= 2) {
-      roomMembers = []
-      room = 0
-    }
-
-
-
-    // to join room
-    roomMembers.push({
-      name,
+    const { profile, name, gender, lookingFor } = data
+    let userData = {
+      profile, name, gender, lookingFor,
       socketId: socket.id
-    })
-    if (room == 0) {
-      room = Math.floor(1 + Math.random() * 99)
-      // room = 5
+    }
+    if (males.length >= 2) {
+      males = []
+      roomId = 0
+    }
+    // to join room
+    males.push(userData)
+
+    // if(lookingFor == 1){
+    //   if (males.length >= 2) {
+    //     males = []
+    //     roomId = 0
+    //   }
+    //   // to join room
+    //   males.push(userData)
+    // }else if(lookingFor == 2){
+    //   if (females.length >= 2) {
+    //     females = []
+    //     roomId = 0
+    //   }
+    //   // to join room
+    //   females.push(userData)
+    // }else{
+    //   if (males.length <= 1) {
+    //     if (males.length >= 2) {
+    //       males = []
+    //       roomId = 0
+    //     }
+    //     males.push(userData)
+    //   }else{
+    //     if (females.length >= 2) {
+    //       females = []
+    //       roomId = 0
+    //     }
+    //     females.push(userData)
+    //   }
+    // }
+
+
+    if (roomId == 0) {
+      roomId = Math.floor(1 + Math.random() * 99)
+      // roomId = 5
     }
 
-    console.log({ room, name });
-    io.to(room).emit("user:joined", { name, id: socket.id })
-    socket.join(room)
+    console.log({ roomId, name });
+    userData.roomId = roomId
+    io.to(roomId).emit("user:joined", userData)
+    socket.join(roomId)
 
-    data.room = room
+    data.roomId = roomId
     io.to(socket.id).emit('room:join', data)
-
-
   })
 
-  socket.on("user:call", ({ to, offer }) => {
+  socket.on("user:leave", ({ roomId }) => {
+    io.to(roomId).emit('user:leave', { from: socket.id });
+    socket.leave(roomId);
+  })
+
+  socket.on("user:call", ({ to, offer, userData }) => {
     console.log("user:call", { to, offer });
-    io.to(to).emit('incoming:call', { from: socket.id, offer })
+    io.to(to).emit('incoming:call', { from: socket.id, offer, connectedUser: userData })
   })
 
   socket.on('call:accepted', ({ to, anw }) => {
@@ -55,7 +87,7 @@ io.on('connection', (socket) => {
   })
 
   socket.on('call:hangup', ({ to, anw }) => {
-    
+
     io.to(to).emit('call:hangup', { from: socket.id, anw })
   })
 

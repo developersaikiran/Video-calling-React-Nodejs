@@ -46,6 +46,7 @@ class PeerService {
             throw error;
         }
     }
+
 }
 
 export default new PeerService();

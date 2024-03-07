@@ -11,6 +11,13 @@ import LobbyScreen from './LobbyScreen'
 
 const Room = () => {
     // const socket = useSocket()
+    const [connection, setConnection] = useState(false)
+    const [connectedUser, setConnectedUser] = useState(null)
+    const [userData, setUserData] = useState(null)
+
+    // localStorage.removeItem('userData');
+
+    const [roomId, setRoomId] = useState(null)
     const [remoteSocketId, setRemoteSocketId] = useState(null)
     const [myStream, setMyStream] = useState()
     const [remoteStream, setRemoteStream] = useState()
@@ -25,19 +32,33 @@ const Room = () => {
         setShowChatbox(!showChatBox);
     };
 
-    const handleUserJoined = async ({ name, id }) => {
-        console.log('User joined', { name, id });
-        // await createMyStream();
-        setRemoteSocketId(id)
-        if (id) {
+    useEffect(() => {
+        const userData = localStorage.getItem('userData');
+        console.log({ userData });
+        setUserData(userData ? JSON.parse(userData) : null)
+    }, [])
+
+    const handleJoinRoom = async (data) => {
+        setConnection(true)
+        setUserData(data ? data : null)
+        setRoomId(data.roomId)
+        console.log(data);
+    }
+
+    const handleUserJoined = async (data) => {
+        console.log('User joined', { name: data.name, socketId: data.socketId });
+        setConnectedUser(data)
+        setRemoteSocketId(data.socketId)
+        setRoomId(roomId)
+        if (data.socketId) {
             const offer = await peer.getOffer();
-            socket.emit("user:call", { to: id, offer })
+            socket.emit("user:call", { to: data.socketId, offer, userData })
         }
     }
 
 
     const createMyStream = async () => {
-        try{
+        try {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true })
             setMyStream(stream)
             for (const track of stream.getTracks()) {
@@ -59,9 +80,10 @@ const Room = () => {
     }
 
 
-    const handleIncomingCall = useCallback(async ({ from, offer }) => {
+    const handleIncomingCall = useCallback(async ({ from, offer, connectedUser }) => {
         console.log('incoming Call', { from, offer });
         setRemoteSocketId(from)
+        setConnectedUser(connectedUser)
 
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true })
         setMyStream(stream)
@@ -130,32 +152,64 @@ const Room = () => {
     }, []);
 
 
+    const leaveCall = async () => {
+        setRemoteStream()
+        setRemoteSocketId()
+        setRoomId(null)
+        setUserData(null)
+        setConnectedUser(null)
+        socket.emit('user:leave', { roomId: roomId })
+        localStorage.removeItem('userData');
+    }
+    
+    const joinCall = async () => {
+        socket.emit('user:leave', { roomId: roomId })
+        setRemoteStream()
+        setRemoteSocketId(null)
+        setRoomId(null)
+        setConnectedUser(null)
+        
+        socket.emit('room:join', {
+            name: userData.name,
+            gender: userData.gender,
+            lookingFor: userData.lookingFor,
+            profile: userData.profile
+        })
+    }
 
-
+    const userLeaveRoom = () => {
+        setRemoteStream()
+        setRemoteSocketId()
+        setRoomId(null)
+    }
 
     useEffect(() => {
         socket.on('user:joined', handleUserJoined)
         socket.on('incoming:call', handleIncomingCall)
         socket.on('call:accepted', handleCallAccepted)
+        socket.on('user:leave', userLeaveRoom)
+        socket.on('room:join', handleJoinRoom)
+
         // socket.on('user:startCall', handleCallStarted)
         return () => {
             socket.off('user:joined', handleUserJoined)
             socket.off('incoming:call', handleIncomingCall)
             socket.off('call:accepted', handleCallAccepted)
+            socket.off('room:join', handleJoinRoom)
             // socket.off('user:startCall', handleCallStarted)
         };
-    }, [socket, handleUserJoined, handleIncomingCall, handleCallAccepted]);
+    }, [socket, handleUserJoined, handleIncomingCall, handleCallAccepted, handleJoinRoom]);
 
 
 
     return (
         <body className={`${isDarkMode ? 'dark' : ''} `}>
-            
-            <div className={`app-container`}>
-                <LobbyScreen userConnect={(data)=>{
-                    console.log(data);
-                }} />
-            </div>
+
+            {!userData &&
+                <div className={`app-container`}>
+                    <LobbyScreen />
+                </div>
+            }
 
             <div className={`app-container`}>
 
@@ -173,7 +227,7 @@ const Room = () => {
                         <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
                     </svg>
                 </button>
-                
+
                 {
 
                 }
@@ -243,6 +297,7 @@ const Room = () => {
                 </div>
 
                 <div className="app-main">
+
                     <div className="video-call-wrapper">
 
                         <div className="video-participant">
@@ -250,7 +305,7 @@ const Room = () => {
                                 <button className="btn-mute"></button>
                                 <button className="btn-camera"></button>
                             </div>
-                            <a href="#" className="name-tag">Saikiran</a>
+                            <a href="#" className="name-tag">{userData?.name ? userData.name : 'Test'}</a>
                             {myStream ?
                                 <ReactPlayer playing muted height="100%" width="100%" url={myStream}
                                     style={{
@@ -259,7 +314,8 @@ const Room = () => {
                                         // display: 'inline-table',
                                     }}
                                 />
-                                : <>
+                                :
+                                <>
                                     <img src="https://i.stack.imgur.com/l60Hf.png" alt="participant" />
                                 </>
                             }
@@ -270,27 +326,42 @@ const Room = () => {
                                 <button className="btn-mute"></button>
                                 <button className="btn-camera"></button>
                             </div>
-                            <a href="#" className="name-tag">Bhavin</a>
+                            <a href="#" className="name-tag">{connectedUser ? connectedUser.name : 'Finding user...'}</a>
                             {remoteStream ?
                                 <ReactPlayer playing height="100%" width="100%" url={remoteStream}
-                                    style={{ 
+                                    style={{
                                         transform: 'scaleX(-1)',
                                         objectFit: 'cover',
                                     }}
                                 />
-                                : <>
-                                    <img src="https://i.stack.imgur.com/l60Hf.png" alt="participant" />
+                                :
+                                <>
+                                    <img src="https://media.istockphoto.com/id/1249978015/photo/portrait-of-curious-woman-in-urban-style-hoodie-holding-hand-above-eyes-and-peering-into.jpg?s=612x612&w=0&k=20&c=pG9Ooh5sZoET8OHvRkcBhYYq1ddO-dKF-XU3Q8GHyF8=" alt="participant" />
                                 </>
                             }
                         </div>
 
                     </div>
+
                     <div className="video-call-actions ">
                         <button className="video-action-button mic"></button>
                         <button className="video-action-button camera"></button>
                         <button className="video-action-button maximize"></button>
-                        <button className="video-action-button endcall">Leave</button>
-                        <button className="video-action-button magnifier">
+                        <button className="video-action-button">{roomId}</button>
+
+                        {
+                            (remoteSocketId || !roomId) &&
+                            <button className="video-action-button endcall" onClick={joinCall}>Connect New</button>
+                        }
+
+                        {
+                            userData ?
+                                <button className="video-action-button endcall" onClick={leaveCall}>Leave</button>
+                                :
+                                <button className="video-action-button joinCall" onClick={joinCall}>Join</button>
+                        }
+
+                        {/* <button className="video-action-button magnifier">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2"
                                 stroke-linecap="round" stroke-linejoin="round" className="feather feather-zoom-in"
                                 viewBox="0 0 24 24">
@@ -305,7 +376,7 @@ const Room = () => {
                                 <line x1="21" y1="21" x2="16.65" y2="16.65" />
                                 <line x1="8" y1="11" x2="14" y2="11" />
                             </svg>
-                        </button>
+                        </button> */}
                     </div>
                 </div>
 
