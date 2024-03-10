@@ -359,17 +359,26 @@
     cursor: pointer;
     outline: none;
     background-color: var(--button-bg);
-    
-    &.mic {
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' stroke='%232c303a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' class='feather feather-mic-off' viewBox='0 0 24 24'%3E%3Cpath d='M1 1l22 22M9 9v3a3 3 0 005.12 2.12M15 9.34V4a3 3 0 00-5.94-.6'/%3E%3Cpath d='M17 16.95A7 7 0 015 12v-2m14 0v2a7 7 0 01-.11 1.23M12 19v4M8 23h8'/%3E%3C/svg%3E%0A");
-      background-position: center;
+    background-position: center;
+        
+    &.mic-on {
+      background-image: url("../assets/icons/microphone.png");
     }
-    
-    &.camera {
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' stroke='%232c303a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' class='feather feather-camera-off' viewBox='0 0 24 24'%3E%3Cpath d='M1 1l22 22M21 21H3a2 2 0 01-2-2V8a2 2 0 012-2h3m3-3h6l2 3h4a2 2 0 012 2v9.34m-7.72-2.06a4 4 0 11-5.56-5.56'/%3E%3C/svg%3E%0A");
-      background-position: center;
+    &.mic-off {
+      background-image: url("../assets/icons/microphone-slash.png");
     }
-    
+
+    &.camera-on {
+      background-image: url("../assets/icons/video.png");
+    }
+    &.camera-off {
+      background-image: url("../assets/icons/video-slash.png");
+    }
+
+    &.camera-flip {
+      background-image: url("../assets/icons/flip.png");
+    }
+
     &.maximize {
       background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' stroke='%232c303a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' class='feather feather-maximize' viewBox='0 0 24 24'%3E%3Cpath d='M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3'/%3E%3C/svg%3E%0A");
       background-position: center;
@@ -610,4 +619,119 @@
       width: 50%;
       height: 100%;
     }
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  .remote-stream-default {
+    align-items: center;
+    background: #222;
+    display: flex;
+    height: 100%;
+    justify-content: center;
+    margin: 0;
+  }
+  
+  
+  .avatar {
+    height: 200px;
+    position: relative;
+    width: 200px;
+  }
+  
+  .avatar img {
+    border-radius: 9999px;
+    height: 100%;
+    position: relative;
+    width: 100%;
+    z-index: 2;
+  }
+  
+  @keyframes cycle-colors {
+    0% { border-color: hsl(0, 100%, 50%); }
+    25% { border-color: hsl(90, 100%, 50%); }
+    50% { border-color: hsl(180, 100%, 50%); }
+    75% { border-color: hsl(270, 100%, 50%); }
+    100% { border-color: hsl(360, 100%, 50%); }
+  }
+  
+  @keyframes pulse {
+    to {
+      opacity: 0;
+      transform: scale(1);
+    }
+  }
+  
+  .avatar::before,
+  .avatar::after {
+    animation: pulse 2s linear infinite;
+    border: #fff solid 8px;
+    border-radius: 9999px;
+    box-sizing: border-box;
+    content: ' ';
+    height: 140%;
+    left: -20%;
+    opacity: .6;
+    position: absolute;
+    top: -20%;
+    transform: scale(0.714);
+    width: 140%;
+    z-index: 1;
+  }
+  
+  .avatar::after {
+    animation-delay: 1s;
+  }
+  
+  .avatar:hover img {
+    content: url('https://brightspotcdn.byu.edu/dims4/default/e74744e/2147483647/strip/true/crop/340x340+0+0/resize/200x200!/quality/90/?url=https%3A%2F%2Fbrigham-young-brightspot.s3.amazonaws.com%2Fbd%2F7f%2Face2612141aa8c6ad180b0786739%2Fdefault-pfp.jpg');
+  }
+  
+  .avatar:hover::before,
+  .avatar:hover::after {
+    animation: pulse 1s linear infinite, cycle-colors 6s linear infinite;
+  }
+  
+  .avatar:hover::after {
+    animation-delay: .5s;
   }

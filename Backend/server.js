@@ -4,6 +4,8 @@ const io = new Server(8000, {
   cors: true
 });
 
+console.log('Server is running on PORT: 8000');
+
 const nameToSocketMap = new Map();
 const socketIdToName = new Map();
 var roomId = 0
@@ -12,7 +14,7 @@ var males = []
 var females = []
 
 io.on('connection', (socket) => {
-  // console.log('socket connected', socket.id);
+  console.log('socket connected', socket.id);
 
   socket.on('room:join', (data) => {
     const { profile, name, gender, lookingFor } = data

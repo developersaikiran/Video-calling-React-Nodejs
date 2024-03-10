@@ -15,6 +15,70 @@ const Room = () => {
     const [connectedUser, setConnectedUser] = useState(null)
     const [userData, setUserData] = useState(null)
 
+    const [micStatus, setMicStatus] = useState('on')
+    const [videoStatus, setVideoStatus] = useState('on')
+    const [cameraFacing, setCameraFacing] = useState('front') // back
+    const [devices, setDevices] = useState([]);
+    const [selectedDevice, setSelectedDevice] = useState('');
+
+    useEffect(() => {
+        const getDevices = async () => {
+            try {
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                const videoDevices = devices.filter(device => device.kind === 'videoinput');
+                setDevices(videoDevices);
+                setSelectedDevice(videoDevices[0]?.deviceId);
+            } catch (error) {
+                console.error('Error getting media devices:', error);
+            }
+        };
+        getDevices();
+    }, []);
+
+    const toggleCamera = () => {
+        if(devices.length > 1){
+            if(cameraFacing == 'front'){
+                setSelectedDevice(devices[1]?.deviceId);
+                setCameraFacing('back')
+            }else{
+                setCameraFacing('front')
+                setSelectedDevice(devices[0]?.deviceId);
+            }
+        }
+    };
+
+    useEffect(() => {
+        const getMediaStream = async () => {
+            try {
+                const constraints = {
+                    audio: true,
+                    video: selectedDevice ? { deviceId: { exact: selectedDevice } } : true
+                };
+    
+                const newStream = await navigator.mediaDevices.getUserMedia(constraints);
+                const videoTrack = newStream.getVideoTracks()[0];
+                const audioTracks = myStream.getAudioTracks();
+    
+                // Stop the existing stream
+                // myStream.getTracks().forEach(track => track.stop());
+    
+                // Create a new stream with the updated video track
+                const updatedStream = new MediaStream([...audioTracks, videoTrack]);
+    
+                // Set the new stream
+                setMyStream(updatedStream);
+            } catch (error) {
+                console.error('Error accessing media devices:', error);
+            }
+        };
+        getMediaStream();
+    }, [selectedDevice]);
+
+
+
+
+
+
     // localStorage.removeItem('userData');
 
     const [roomId, setRoomId] = useState(null)
@@ -30,6 +94,26 @@ const Room = () => {
 
     const toggleShowChatBox = () => {
         setShowChatbox(!showChatBox);
+    };
+
+    // Function to toggle microphone status
+    const toggleMic = async () => {
+        if (micStatus === 'on') {
+            await myStream.getAudioTracks().forEach(track => track.enabled = false);
+        } else {
+            await myStream.getAudioTracks().forEach(track => track.enabled = true);
+        }
+        setMicStatus(prev => prev === 'on' ? 'off' : 'on');
+    };
+
+    // Function to toggle video status
+    const toggleVideo = () => {
+        if (videoStatus === 'on') {
+            myStream.getVideoTracks().forEach(track => track.enabled = false);
+        } else {
+            myStream.getVideoTracks().forEach(track => track.enabled = true);
+        }
+        setVideoStatus(prev => prev === 'on' ? 'off' : 'on');
     };
 
     useEffect(() => {
@@ -59,10 +143,17 @@ const Room = () => {
 
     const createMyStream = async () => {
         try {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true })
+            const constraints = {
+                audio: micStatus === 'on',
+                video: videoStatus === 'on'
+            };
+
+            const stream = await navigator.mediaDevices.getUserMedia(constraints)
             setMyStream(stream)
             for (const track of stream.getTracks()) {
-                peer.peer.addTrack(track, stream)
+                if (micStatus === 'on' || track.kind !== 'audio') {
+                    peer.peer.addTrack(track, stream)
+                }
             }
         } catch (error) {
             if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
@@ -148,6 +239,11 @@ const Room = () => {
             peer.peer.removeEventListener('icecandidate', handleIceCandidate);
             peer.peer.removeEventListener('negotiationneeded', handleNegotiationNeeded);
             peer.peer.removeEventListener('track', handleTrack);
+
+            // Stop tracks and close connection if needed
+            if (myStream) {
+                myStream.getTracks().forEach(track => track.stop());
+            }
         };
     }, []);
 
@@ -161,14 +257,14 @@ const Room = () => {
         socket.emit('user:leave', { roomId: roomId })
         localStorage.removeItem('userData');
     }
-    
+
     const joinCall = async () => {
         socket.emit('user:leave', { roomId: roomId })
         setRemoteStream()
         setRemoteSocketId(null)
         setRoomId(null)
         setConnectedUser(null)
-        
+
         socket.emit('room:join', {
             name: userData.name,
             gender: userData.gender,
@@ -301,17 +397,24 @@ const Room = () => {
                     <div className="video-call-wrapper">
 
                         <div className="video-participant">
-                            <div className="participant-actions">
+                            {/* <div className="participant-actions">
                                 <button className="btn-mute"></button>
                                 <button className="btn-camera"></button>
-                            </div>
+                            </div> */}
                             <a href="#" className="name-tag">{userData?.name ? userData.name : 'Test'}</a>
                             {myStream ?
-                                <ReactPlayer playing muted height="100%" width="100%" url={myStream}
+                                <video
+                                    autoPlay
+                                    muted
+                                    height="100%"
+                                    width="100%"
+                                    ref={(videoRef) => {
+                                        if (videoRef) {
+                                            videoRef.srcObject = myStream;
+                                        }
+                                    }}
                                     style={{
-                                        // transform: 'scaleX(-1)',
                                         objectFit: 'cover',
-                                        // display: 'inline-table',
                                     }}
                                 />
                                 :
@@ -322,21 +425,34 @@ const Room = () => {
                         </div>
 
                         <div className="video-participant">
-                            <div className="participant-actions">
+                            {/* <div className="participant-actions">
                                 <button className="btn-mute"></button>
                                 <button className="btn-camera"></button>
-                            </div>
+                            </div> */}
                             <a href="#" className="name-tag">{connectedUser ? connectedUser.name : 'Finding user...'}</a>
                             {remoteStream ?
-                                <ReactPlayer playing height="100%" width="100%" url={remoteStream}
+                                <video
+                                    autoPlay
+                                    height="100%"
+                                    width="100%"
+                                    ref={(videoRef) => {
+                                        if (videoRef) {
+                                            videoRef.srcObject = remoteStream;
+                                        }
+                                    }}
                                     style={{
-                                        transform: 'scaleX(-1)',
                                         objectFit: 'cover',
+                                        // transform: 'scaleX(-1)',
                                     }}
                                 />
                                 :
                                 <>
-                                    <img src="https://media.istockphoto.com/id/1249978015/photo/portrait-of-curious-woman-in-urban-style-hoodie-holding-hand-above-eyes-and-peering-into.jpg?s=612x612&w=0&k=20&c=pG9Ooh5sZoET8OHvRkcBhYYq1ddO-dKF-XU3Q8GHyF8=" alt="participant" />
+                                    <div className='remote-stream-default'>
+                                        <div className="avatar">
+                                            <img src="https://placekitten.com/400/400" />
+                                        </div>
+                                        {/* <img src="https://media.istockphoto.com/id/1249978015/photo/portrait-of-curious-woman-in-urban-style-hoodie-holding-hand-above-eyes-and-peering-into.jpg?s=612x612&w=0&k=20&c=pG9Ooh5sZoET8OHvRkcBhYYq1ddO-dKF-XU3Q8GHyF8=" alt="participant" /> */}
+                                    </div>
                                 </>
                             }
                         </div>
@@ -344,10 +460,13 @@ const Room = () => {
                     </div>
 
                     <div className="video-call-actions ">
-                        <button className="video-action-button mic"></button>
-                        <button className="video-action-button camera"></button>
-                        <button className="video-action-button maximize"></button>
-                        <button className="video-action-button">{roomId}</button>
+                        <button className={`video-action-button mic-${micStatus}`} onClick={toggleMic}></button>
+                        <button className={`video-action-button camera-${videoStatus}`} onClick={toggleVideo}></button>
+                        <button className={`video-action-button camera-flip`} onClick={toggleCamera}></button>
+
+                        {roomId &&
+                            <button className="video-action-button">{roomId}</button>
+                        }
 
                         {
                             (remoteSocketId || !roomId) &&
