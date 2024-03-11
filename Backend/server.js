@@ -107,4 +107,9 @@ io.on('connection', (socket) => {
     console.log({ to, anw });
     io.to(to).emit('peer:nego:final', { from: socket.id, anw })
   })
+
+  socket.on('send:message', ({ imageUrl, name, message, roomId }) => {
+    console.log({ imageUrl, name, message, roomId });
+    io.to(roomId).emit('receive:message', { imageUrl, name, message, roomId })
+  })
 })
