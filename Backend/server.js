@@ -88,28 +88,8 @@ io.on('connection', (socket) => {
     io.to(to).emit('call:accepted', { from: socket.id, anw })
   })
 
-  socket.on('call:hangup', ({ to, anw }) => {
-
-    io.to(to).emit('call:hangup', { from: socket.id, anw })
-  })
-
-  socket.on('peer:nego:needed', ({ to, offer }) => {
-    console.log('peer:nego:needed', to);
-    io.to(to).emit('peer:nego:needed', { from: socket.id, offer })
-  })
-
-  // socket.on('user:startCall', ({ to, offer }) => {
-  //   console.log('user:startCall________', { to });
-  //   io.to(to).emit('user:startCall', { from: to, anw: offer })
-  // })
-
-  socket.on('peer:nego:done', ({ to, anw }) => {
-    console.log({ to, anw });
-    io.to(to).emit('peer:nego:final', { from: socket.id, anw })
-  })
-
-  socket.on('send:message', ({ imageUrl, name, message, roomId }) => {
-    console.log({ imageUrl, name, message, roomId });
-    io.to(roomId).emit('receive:message', { imageUrl, name, message, roomId })
+  socket.on('send:message', ({ imageUrl, name, message, roomId, senderId }) => {
+    console.log({ imageUrl, name, message, roomId, senderId });
+    io.to(roomId).emit('receive:message', ({ imageUrl, name, message, roomId, senderId }))
   })
 })

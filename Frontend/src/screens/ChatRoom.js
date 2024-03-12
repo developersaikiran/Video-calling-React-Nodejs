@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { socket } from '../context/SocketProvider'
 import { useNavigate } from 'react-router-dom'
 import './style.css';
@@ -8,13 +8,15 @@ const ChatRoom = ({roomId, remoteSocketId}) => {
   const [showChatBox, setShowChatbox] = useState(false);
   const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState('');
+  const chatAreaRef = useRef(null);
 
   const toggleShowChatBox = () => {
     setShowChatbox(!showChatBox);
   };
 
   const receiveMessage = (data) => {
-    setMessages((prev) => [prev, ...data])
+    console.log("Receive message", {data});
+    setMessages((prev) => [...prev, data])
   }
 
   const sendMessage = () => {
@@ -22,13 +24,25 @@ const ChatRoom = ({roomId, remoteSocketId}) => {
       imageUrl: '',
       name: '',
       message: inputMessage,
-      roomId: roomId
+      roomId: roomId,
+      senderId: socket.id
     }
     console.log({data});
-    socket.emit('send:message', data);
-    setInputMessage('')
+    if(inputMessage){
+      socket.emit('send:message', data);
+      setInputMessage('')
+    }
   }
   
+  useEffect(() => {
+    const scrollToBottom = () => {
+      if (chatAreaRef.current) {
+        chatAreaRef.current.scrollTop = chatAreaRef.current.scrollHeight;
+      }
+    };
+    scrollToBottom();
+  }, [messages])
+
   useEffect(() => {
     socket.on('receive:message', receiveMessage)
     return () => {
@@ -62,23 +76,22 @@ const ChatRoom = ({roomId, remoteSocketId}) => {
             </button>
           </div>
         
-          <div className="chat-area">
+          <div className="chat-area" ref={chatAreaRef}>
 
             {messages.map((data) => (
-              <div className="message-wrapper">
+              <div className={`message-wrapper ${data.senderId == socket.id ? 'reverse' : ''}`}>
                 <div className="profile-picture">
                   <img src="https://images.unsplash.com/photo-1581824283135-0666cf353f35?ixlib=rb-1.2.1&auto=format&fit=crop&w=1276&q=80"
                     alt="pp" />
                 </div>
                 <div className="message-content">
-                  <p className="name">Ryan Patrick</p>
-                  <div className="message">Hi team!❤️</div>
-                  <div className="message">I downloaded the file I downloaded the file I downloaded the file I downloaded the file I downloaded the file I downloaded the file<a className="mention">@timrussel</a></div>
+                  <p className="name">{data.name}</p>
+                  <div className="message">{data.message}</div>
                 </div>
               </div>
             ))}
 
-            <div className="message-wrapper">
+            {/* <div className="message-wrapper">
               <div className="profile-picture">
                 <img src="https://images.unsplash.com/photo-1581824283135-0666cf353f35?ixlib=rb-1.2.1&auto=format&fit=crop&w=1276&q=80"
                   alt="pp" />
@@ -99,7 +112,7 @@ const ChatRoom = ({roomId, remoteSocketId}) => {
                 <p className="name">Emmy Lou</p>
                 <div className="message">Woooww! Awesome❤️</div>
               </div>
-            </div>
+            </div> */}
 
           </div>
           
