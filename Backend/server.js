@@ -22,42 +22,42 @@ io.on('connection', (socket) => {
       profile, name, gender, lookingFor,
       socketId: socket.id
     }
-    if (males.length >= 2) {
-      males = []
-      roomId = 0
-    }
-    // to join room
-    males.push(userData)
-
-    // if(lookingFor == 1){
-    //   if (males.length >= 2) {
-    //     males = []
-    //     roomId = 0
-    //   }
-    //   // to join room
-    //   males.push(userData)
-    // }else if(lookingFor == 2){
-    //   if (females.length >= 2) {
-    //     females = []
-    //     roomId = 0
-    //   }
-    //   // to join room
-    //   females.push(userData)
-    // }else{
-    //   if (males.length <= 1) {
-    //     if (males.length >= 2) {
-    //       males = []
-    //       roomId = 0
-    //     }
-    //     males.push(userData)
-    //   }else{
-    //     if (females.length >= 2) {
-    //       females = []
-    //       roomId = 0
-    //     }
-    //     females.push(userData)
-    //   }
+    // if (males.length >= 2) {
+    //   males = []
+    //   roomId = 0
     // }
+    // // to join room
+    // males.push(userData)
+
+    if(lookingFor == 1){
+      if (males.length >= 2) {
+        males = []
+        roomId = 0
+      }
+      // to join room
+      males.push(userData)
+    }else if(lookingFor == 2){
+      if (females.length >= 2) {
+        females = []
+        roomId = 0
+      }
+      // to join room
+      females.push(userData)
+    }else{
+      if (males.length <= 1) {
+        if (males.length >= 2) {
+          males = []
+          roomId = 0
+        }
+        males.push(userData)
+      }else{
+        if (females.length >= 2) {
+          females = []
+          roomId = 0
+        }
+        females.push(userData)
+      }
+    }
 
 
     if (roomId == 0) {

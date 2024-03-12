@@ -1,0 +1,33 @@
+.tomato {
+    background: var(--main-color);
+}
+
+
+.center {
+    display: flex;
+    /* justify-content: space-evenly; */
+    align-items: center;
+    /* height: 100vh; */
+    color: var(--message-text);
+}
+
+.circle {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    box-shadow: 0px 0px 1px 1px #00000079;
+}
+
+.pulse {
+    animation: pulse-animation 2s infinite;
+}
+
+@keyframes pulse-animation {
+    0% {
+        box-shadow: 0 0 0 0px #ff634762;
+    }
+
+    100% {
+        box-shadow: 0 0 0 5px #ff634762;
+    }
+}

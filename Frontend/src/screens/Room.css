@@ -85,7 +85,7 @@
     border-radius: 10px;
     display: flex;
     flex-direction: column;
-    height: calc(100% - 72px);
+    height: 100%;
     width: '100%';
     min-width: 350px;
   }
@@ -98,19 +98,6 @@
   .chat-header {
     padding: 16px;
     border-bottom: 1px solid #f5f5f5;
-  }
-  
-  .chat-header-button {
-    background-color: var(--main-color);
-    padding: 12px 16px 12px 40px;
-    border: none;
-    border-radius: 4px;
-    color: #fff;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg' fill='%23fff'%3E%3Cpath d='M479.9 187.52l-90.19 68.53v-52.6a20 20 0 00-20-20H20a20 20 0 00-20 20V492a20 20 0 0020 20h349.71a20 20 0 0020-20v-52.6l90.18 68.52c13.05 9.91 32.1.67 32.1-15.92V203.45c0-16.5-18.94-25.92-32.1-15.93zM349.7 472H40V223.45h309.71zM472 451.68l-82.29-62.53V306.3L472 243.77zM87.96 79.24C129.62 28.88 190.86 0 256 0c65.13 0 126.37 28.88 168.03 79.24a20 20 0 01-30.82 25.5A177.6 177.6 0 00256 40a177.6 177.6 0 00-137.21 64.73 20 20 0 11-30.83-25.5zm240.36 32.21a20 20 0 11-21.02 34.03 97.57 97.57 0 00-51.3-14.53 97.6 97.6 0 00-51.31 14.53 20 20 0 11-21.02-34.03A137.53 137.53 0 01256 90.95c25.59 0 50.6 7.09 72.32 20.5zm0 0'/%3E%3C/svg%3E%0A");
-    background-repeat: no-repeat;
-    background-position: center left 12px;
-    background-size: 16px;
-    font-size: 14px;
   }
   
   .chat-area {
@@ -157,8 +144,9 @@
     color: var(--message-text);
   }
   
+
   .message-wrapper {
-    padding: 16px 0;
+    padding-top: 16px;
     
     &.reverse {
       flex-direction: row-reverse;
@@ -167,7 +155,7 @@
         background-color: var(--message-bg-2);
         color: #fff;
         margin-left: auto;
-        border-radius: 16px 0px 16px 16px;
+        border-radius: 12px 0px 12px 12px;
       }
       
       .profile-picture {
@@ -181,6 +169,18 @@
     }
   }
 
+  .message-wrapper {
+    &.same-user {
+      padding: 0px;
+      margin-right: 40px;
+      .message {
+        border-radius: 12px;
+      }
+    }
+    &.reverse {
+      margin-left: 40px;
+    }
+  }
   
   .mention {
     color: #7c80fd;
@@ -256,8 +256,13 @@
     height: 100%;
     position: relative;
     /* display: inline-table; */
-    background-color: #00000048;
-    
+    /* background-color: #00000048; */
+
+    align-items: center;
+    background: #222;
+    display: flex;
+    justify-content: center;
+
     img {
       width: 100%;
       height: 100%;
@@ -312,6 +317,14 @@
     max-width: 500px;
   }
   
+  .img-icons{
+
+  }
+
+  .dark .img-icons {
+    filter:invert(1);
+  }
+
   .video-action-button {
     background-repeat: no-repeat;
     background-size: 24px;
@@ -326,38 +339,13 @@
     background-color: var(--button-bg);
     background-position: center;
         
-    &.mic-on {
-      background-image: url("../assets/icons/microphone.png");
-    }
-    &.mic-off {
-      background-image: url("../assets/icons/microphone-slash.png");
-    }
 
-    &.camera-on {
-      background-image: url("../assets/icons/video.png");
-    }
-    &.camera-off {
-      background-image: url("../assets/icons/video-slash.png");
-    }
-
-    &.camera-flip {
-      background-image: url("../assets/icons/flip.png");
-    }
-
-    &.maximize {
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' stroke='%232c303a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' class='feather feather-maximize' viewBox='0 0 24 24'%3E%3Cpath d='M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3'/%3E%3C/svg%3E%0A");
-      background-position: center;
-    }
-    
     &.endcall {
-      color: #ff1932;
+      color: var(--main-color);
       width: auto;
       font-size: 14px;
-      padding-left: 42px;
+      padding-left: 10px;
       padding-right: 12px;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ff1932' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' class='feather feather-phone-missed'%3E%3Cline x1='23' y1='1' x2='17' y2='7'/%3E%3Cline x1='17' y1='1' x2='23' y2='7'/%3E%3Cpath d='M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z'/%3E%3C/svg%3E");
-      background-size: 20px;
-      background-position: center left 12px;
     }
 
     &.joinCall {
@@ -369,25 +357,6 @@
       background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ff1932' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' class='feather feather-phone-missed'%3E%3Cline x1='23' y1='1' x2='17' y2='7'/%3E%3Cline x1='17' y1='1' x2='23' y2='7'/%3E%3Cpath d='M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z'/%3E%3C/svg%3E");
       background-size: 20px;
       background-position: center left 12px;
-    }
-    
-    &.magnifier {
-      padding: 0 12px;
-      display: flex;
-      align-items: center;
-      width: auto;
-      flex-grow: 0;
-      color: #2c303a;
-      
-      svg {
-        width: 20px;
-        flex-shrink: 0;
-      }
-      
-      span {
-        display: block;
-        margin: 0 16px;
-      }
     }
   }
   
@@ -487,6 +456,11 @@
     
     display: none;
   }
+
+  .video-action-button .img-icons {
+    height: 25px;
+    /* padding-left: 36px; */
+  }
   
   @media screen and (max-width: 900px) {
     .expand-btn {
@@ -564,25 +538,29 @@
     }
     
     .video-action-button.endcall {
-      background-size: 14px;
-      font-size: 12px;
-      padding-left: 36px;
+      font-size: 10px;
+      /* padding-left: 36px; */
+    }
+
+    .video-action-button .img-icons {
+      height: 18px;
+      /* padding-left: 36px; */
     }
     
-    .video-action-button.magnifier svg {
-      width: 14px;
-    }
-    
-    .video-action-button.magnifier span {
-      margin: 0 4px;
-      font-size: 12px;
-    }
   }
+  
   
   @media screen and (max-width: 520px) and (max-height: 720px) {
     .video-participant {
       width: 50%;
       height: 100%;
+    }
+  }
+
+  @media screen and (max-width: 520px) {
+    .video-participant {
+      width: 100%;
+      height: 50%;
     }
   }
 
@@ -639,9 +617,9 @@
   
   
   .avatar {
-    height: 200px;
+    height: 100px;
     position: relative;
-    width: 200px;
+    width: 100px;
   }
   
   .avatar img {

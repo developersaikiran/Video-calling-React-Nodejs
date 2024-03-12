@@ -8,6 +8,7 @@ import Pulsating from "../components/pulse";
 import './Room.css'
 import LobbyScreen from './LobbyScreen'
 import ChatRoom from './ChatRoom'
+import { icons } from '../assets'
 
 
 const Room = () => {
@@ -36,17 +37,6 @@ const Room = () => {
         getDevices();
     }, []);
 
-    const toggleCamera = () => {
-        if (devices.length > 1) {
-            if (cameraFacing == 'front') {
-                setSelectedDevice(devices[1]?.deviceId);
-                setCameraFacing('back')
-            } else {
-                setCameraFacing('front')
-                setSelectedDevice(devices[0]?.deviceId);
-            }
-        }
-    };
 
     useEffect(() => {
         const getMediaStream = async () => {
@@ -90,15 +80,27 @@ const Room = () => {
         setDarkMode(!isDarkMode);
     };
 
+    const toggleCamera = () => {
+        if (devices.length > 1) {
+            if (cameraFacing == 'front') {
+                setSelectedDevice(devices[1]?.deviceId);
+                setCameraFacing('back')
+            } else {
+                setSelectedDevice(devices[0]?.deviceId);
+                setCameraFacing('front')
+            }
+        }
+    };
 
     // Function to toggle microphone status
     const toggleMic = async () => {
         if (micStatus === 'on') {
             await myStream.getAudioTracks().forEach(track => track.enabled = false);
+            setMicStatus('off');
         } else {
             await myStream.getAudioTracks().forEach(track => track.enabled = true);
+            setMicStatus('on');
         }
-        setMicStatus(prev => prev === 'on' ? 'off' : 'on');
     };
 
     // Function to toggle video status
@@ -185,12 +187,6 @@ const Room = () => {
         console.warn("call accepted_____________________", anw);
         await peer.setRemoteDescription(anw)
     }
-
-    const handleCallStarted = async ({ from, anw }) => {
-        console.warn("call Started receive_____________________", anw);
-        // await peer.setRemoteDescription(anw)
-    }
-
 
 
     useEffect(() => {
@@ -302,206 +298,209 @@ const Room = () => {
                 </div>
             }
 
-            <div className={`app-container`}>
+            {userData &&
+                <div className={`app-container`}>
 
-                <button className="mode-switch" onClick={toggleDarkMode}>
-                    <svg className="sun" fill="none" stroke="#fbb046" stroke-linecap="round" stroke-linejoin="round"
-                        stroke-width="2" class="feather feather-sun" viewBox="0 0 24 24">
-                        <defs />
-                        <circle cx="12" cy="12" r="5" />
-                        <path
-                            d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
-                    </svg>
-                    <svg className="moon" fill="none" stroke="#ffffff" stroke-linecap="round" stroke-linejoin="round"
-                        stroke-width="2" class="feather feather-moon" viewBox="0 0 24 24">
-                        <defs />
-                        <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
-                    </svg>
-                </button>
+                    <button className="mode-switch" onClick={toggleDarkMode}>
+                        {isDarkMode ?
+                            <img className='img-icons' style={{ height: '25px' }} src={icons.sun}></img>
+                            :
+                            <img className='img-icons' style={{ height: '25px' }} src={icons.moon}></img>
+                        }
+                        {/* <svg className="sun" fill="none" stroke="#fbb046" stroke-linecap="round" stroke-linejoin="round"
+                            stroke-width="2" class="feather feather-sun" viewBox="0 0 24 24">
+                            <defs />
+                            <circle cx="12" cy="12" r="5" />
+                            <path
+                                d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+                        </svg>
+                        <svg className="moon" fill="none" stroke="#ffffff" stroke-linecap="round" stroke-linejoin="round"
+                            stroke-width="2" class="feather feather-moon" viewBox="0 0 24 24">
+                            <defs />
+                            <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
+                        </svg> */}
+                    </button>
 
-                {
 
-                }
-
-                <div className="left-side" style={{ display: 'none' }}>
-                    <div className="navigation">
-                        <a href="#" className="nav-link icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2"
-                                stroke-linecap="round" stroke-linejoin="round" className="feather feather-home" viewBox="0 0 24 24">
-                                <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
-                                <path d="M9 22V12h6v10" />
-                            </svg>
-                        </a>
-                        <a href="#" className="nav-link icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                                className="feather feather-message-square">
-                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                            </svg>
-                        </a>
-                        <a href="#" className="nav-link icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2"
-                                stroke-linecap="round" stroke-linejoin="round" className="feather feather-phone-call"
-                                viewBox="0 0 24 24">
-                                <path
-                                    d="M15.05 5A5 5 0 0119 8.95M15.05 1A9 9 0 0123 8.94m-1 7.98v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z" />
-                            </svg>
-                        </a>
-                        <a href="#" className="nav-link icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                                className="feather feather-hard-drive">
-                                <line x1="22" y1="12" x2="2" y2="12" />
-                                <path
-                                    d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z" />
-                                <line x1="6" y1="16" x2="6.01" y2="16" />
-                                <line x1="10" y1="16" x2="10.01" y2="16" />
-                            </svg>
-                        </a>
-                        <a href="#" className="nav-link icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                                className="feather feather-users">
-                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                                <circle cx="9" cy="7" r="4" />
-                                <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-                                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-                            </svg>
-                        </a>
-                        <a href="#" className="nav-link icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2"
-                                stroke-linecap="round" stroke-linejoin="round" className="feather feather-folder"
-                                viewBox="0 0 24 24">
-                                <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z" />
-                            </svg>
-                        </a>
-                        <a href="#" className="nav-link icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2"
-                                stroke-linecap="round" stroke-linejoin="round" className="feather feather-settings"
-                                viewBox="0 0 24 24">
-                                <circle cx="12" cy="12" r="3" />
-                                <path
-                                    d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z" />
-                            </svg>
-                        </a>
-                    </div>
-                </div>
-
-                <div className="app-main">
-
-                    <div className="video-call-wrapper">
-
-                        <div className="video-participant">
-                            {/* <div className="participant-actions">
-                                <button className="btn-mute"></button>
-                                <button className="btn-camera"></button>
-                            </div> */}
-                            <a href="#" className="name-tag">{userData?.name ? userData.name : 'Test'}</a>
-                            {myStream ?
-                                <video
-                                    autoPlay
-                                    muted
-                                    height="100%"
-                                    width="100%"
-                                    ref={(videoRef) => {
-                                        if (videoRef) {
-                                            videoRef.srcObject = myStream;
-                                        }
-                                    }}
-                                    style={{
-                                        objectFit: 'cover',
-                                    }}
-                                />
-                                :
-                                <>
-                                    <div className="avatar">
-                                        <img src="https://i.stack.imgur.com/l60Hf.png" alt="participant" />
-                                    </div>
-                                </>
-                            }
+                    <div className="left-side" style={{ display: 'none' }}>
+                        <div className="navigation">
+                            <a href="#" className="nav-link icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round" className="feather feather-home" viewBox="0 0 24 24">
+                                    <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+                                    <path d="M9 22V12h6v10" />
+                                </svg>
+                            </a>
+                            <a href="#" className="nav-link icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                    className="feather feather-message-square">
+                                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                                </svg>
+                            </a>
+                            <a href="#" className="nav-link icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round" className="feather feather-phone-call"
+                                    viewBox="0 0 24 24">
+                                    <path
+                                        d="M15.05 5A5 5 0 0119 8.95M15.05 1A9 9 0 0123 8.94m-1 7.98v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z" />
+                                </svg>
+                            </a>
+                            <a href="#" className="nav-link icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                    className="feather feather-hard-drive">
+                                    <line x1="22" y1="12" x2="2" y2="12" />
+                                    <path
+                                        d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z" />
+                                    <line x1="6" y1="16" x2="6.01" y2="16" />
+                                    <line x1="10" y1="16" x2="10.01" y2="16" />
+                                </svg>
+                            </a>
+                            <a href="#" className="nav-link icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                    className="feather feather-users">
+                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                                    <circle cx="9" cy="7" r="4" />
+                                    <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                                    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                                </svg>
+                            </a>
+                            <a href="#" className="nav-link icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round" className="feather feather-folder"
+                                    viewBox="0 0 24 24">
+                                    <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z" />
+                                </svg>
+                            </a>
+                            <a href="#" className="nav-link icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round" className="feather feather-settings"
+                                    viewBox="0 0 24 24">
+                                    <circle cx="12" cy="12" r="3" />
+                                    <path
+                                        d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z" />
+                                </svg>
+                            </a>
                         </div>
+                    </div>
 
-                        <div className="video-participant">
-                            {/* <div className="participant-actions">
+                    <div className="app-main">
+
+                        <div className="video-call-wrapper">
+
+                            <div className="video-participant">
+                                {/* <div className="participant-actions">
                                 <button className="btn-mute"></button>
                                 <button className="btn-camera"></button>
                             </div> */}
-                            <a href="#" className="name-tag">{connectedUser ? connectedUser.name : 'Finding user...'}</a>
-                            {remoteStream ?
-                                <video
-                                    autoPlay
-                                    height="100%"
-                                    width="100%"
-                                    ref={(videoRef) => {
-                                        if (videoRef) {
-                                            videoRef.srcObject = remoteStream;
-                                        }
-                                    }}
-                                    style={{
-                                        objectFit: 'cover',
-                                        // transform: 'scaleX(-1)',
-                                    }}
-                                />
-                                :
-                                <>
-                                    <div className='remote-stream-default'>
+                                <a className="name-tag">{userData?.name ? userData.name : 'Test'}</a>
+                                {myStream ?
+                                    <video
+                                        autoPlay
+                                        muted
+                                        height="100%"
+                                        width="100%"
+                                        ref={(videoRef) => {
+                                            if (videoRef) {
+                                                videoRef.srcObject = myStream;
+                                            }
+                                        }}
+                                        style={{
+                                            objectFit: 'cover',
+                                        }}
+                                    />
+                                    :
+                                    <>
                                         <div className="avatar">
-                                            <img src="https://placekitten.com/400/400" />
+                                            <img src="https://i.stack.imgur.com/l60Hf.png" alt="participant" />
                                         </div>
-                                        {/* <img src="https://media.istockphoto.com/id/1249978015/photo/portrait-of-curious-woman-in-urban-style-hoodie-holding-hand-above-eyes-and-peering-into.jpg?s=612x612&w=0&k=20&c=pG9Ooh5sZoET8OHvRkcBhYYq1ddO-dKF-XU3Q8GHyF8=" alt="participant" /> */}
-                                    </div>
-                                </>
-                            }
+                                    </>
+                                }
+                            </div>
+                            <div className="video-participant">
+                                {/* <div className="participant-actions">
+                                <button className="btn-mute"></button>
+                                <button className="btn-camera"></button>
+                            </div> */}
+                                <a className="name-tag">{connectedUser ? connectedUser.name : 'Finding user...'}</a>
+                                {remoteStream ?
+                                    <video
+                                        autoPlay
+                                        height="100%"
+                                        width="100%"
+                                        ref={(videoRef) => {
+                                            if (videoRef) {
+                                                videoRef.srcObject = remoteStream;
+                                            }
+                                        }}
+                                        style={{
+                                            objectFit: 'cover',
+                                            // transform: 'scaleX(-1)',
+                                        }}
+                                    />
+                                    :
+                                    <>
+                                        <div className='remote-stream-default'>
+                                            <div className="avatar">
+                                                <img src="https://i.stack.imgur.com/l60Hf.png" />
+                                            </div>
+                                        </div>
+                                    </>
+                                }
+                            </div>
+
                         </div>
 
+                        <div className="video-call-actions ">
+
+                            <button className={`video-action-button mic`} onClick={toggleMic}>
+                                <img className={`img-icons`} src={micStatus == 'on' ? icons.micOn : icons.micOff} />
+                            </button>
+
+                            <button className={`video-action-button camera`} onClick={toggleVideo}>
+                                <img className={`img-icons`} src={videoStatus == 'on' ? icons.videoOn : icons.videoOff} />
+                            </button>
+                            <button className={`video-action-button camera-flip`} onClick={toggleCamera}>
+                                <img className={`img-icons`} src={icons.cameraFlip} style={{}} />
+                            </button>
+
+                            {roomId &&
+                                <button className="video-action-button">{roomId}</button>
+                            }
+
+                            {
+                                (remoteSocketId || !roomId) &&
+                                <button className="video-action-button endcall" onClick={joinCall}>
+                                    <img className={`img-icons`} src={icons.reconnect} style={{ marginRight: '5px' }} />
+                                    Connect New
+                                </button>
+                            }
+
+                            {
+                                userData ?
+                                    <button className="video-action-button endcall" onClick={leaveCall}>
+                                        <img className={`img-icons`} src={icons.hangupCall} style={{ marginRight: '5px' }} />
+                                        Leave
+                                    </button>
+                                    :
+                                    <button className="video-action-button joinCall" onClick={joinCall}>
+                                        {/* <img className={`img-icons`} src={icons.hangupCall} style={{ height: '30px', marginRight: '5px' }} /> */}
+                                        Join
+                                    </button>
+                            }
+
+                        </div>
                     </div>
 
-                    <div className="video-call-actions ">
-                        <button className={`video-action-button mic-${micStatus}`} onClick={toggleMic}></button>
-                        <button className={`video-action-button camera-${videoStatus}`} onClick={toggleVideo}></button>
-                        <button className={`video-action-button camera-flip`} onClick={toggleCamera}></button>
+                    <ChatRoom
+                        roomId={roomId}
+                        remoteSocketId={remoteSocketId}
+                    />
 
-                        {roomId &&
-                            <button className="video-action-button">{roomId}</button>
-                        }
-
-                        {
-                            (remoteSocketId || !roomId) &&
-                            <button className="video-action-button endcall" onClick={joinCall}>Connect New</button>
-                        }
-
-                        {
-                            userData ?
-                                <button className="video-action-button endcall" onClick={leaveCall}>Leave</button>
-                                :
-                                <button className="video-action-button joinCall" onClick={joinCall}>Join</button>
-                        }
-
-                        {/* <button className="video-action-button magnifier">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2"
-                                stroke-linecap="round" stroke-linejoin="round" className="feather feather-zoom-in"
-                                viewBox="0 0 24 24">
-                                <circle cx="11" cy="11" r="8" />
-                                <path d="M21 21l-4.35-4.35M11 8v6M8 11h6" />
-                            </svg>
-                            <span>100%</span>
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                                className="feather feather-zoom-out">
-                                <circle cx="11" cy="11" r="8" />
-                                <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                                <line x1="8" y1="11" x2="14" y2="11" />
-                            </svg>
-                        </button> */}
-                    </div>
                 </div>
-
-                <ChatRoom
-                    roomId={roomId}
-                    remoteSocketId={remoteSocketId}
-                />
-
-            </div>
+            }
         </body>
 
     )
