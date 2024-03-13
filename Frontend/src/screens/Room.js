@@ -127,13 +127,15 @@ const Room = () => {
     }
 
     const handleUserJoined = async (data) => {
-        console.log('User joined', { name: data.name, socketId: data.socketId });
-        setConnectedUser(data)
-        setRemoteSocketId(data.socketId)
-        setRoomId(roomId)
-        if (data.socketId) {
-            const offer = await peer.getOffer();
-            socket.emit("user:call", { to: data.socketId, offer, userData })
+        if(data.socketId != socket.id){
+            console.log('User joined', { name: data.name, socketId: data.socketId });
+            setConnectedUser(data)
+            setRemoteSocketId(data.socketId)
+            setRoomId(roomId)
+            if (data.socketId) {
+                const offer = await peer.getOffer();
+                socket.emit("user:call", { to: data.socketId, offer, userData })
+            }
         }
     }
 
@@ -230,13 +232,14 @@ const Room = () => {
             peer.peer.removeEventListener('icecandidate', handleIceCandidate);
             peer.peer.removeEventListener('negotiationneeded', handleNegotiationNeeded);
             peer.peer.removeEventListener('track', handleTrack);
+            setRemoteStream();
 
             // Stop tracks and close connection if needed
-            if (myStream) {
-                myStream.getTracks().forEach(track => track.stop());
-            }
+            // if (myStream) {
+            //     myStream.getTracks().forEach(track => track.stop());
+            // }
         };
-    }, []);
+    }, [roomId]);
 
 
     const leaveCall = async () => {
@@ -251,10 +254,11 @@ const Room = () => {
 
     const joinCall = async () => {
         socket.emit('user:leave', { roomId: roomId })
-        setRemoteStream()
+        setRemoteStream(null)
         setRemoteSocketId(null)
         setRoomId(null)
         setConnectedUser(null)
+        // peer.peer.restartIce()
 
         socket.emit('room:join', {
             name: userData.name,
@@ -474,7 +478,7 @@ const Room = () => {
                                 (remoteSocketId || !roomId) &&
                                 <button className="video-action-button endcall" onClick={joinCall}>
                                     <img className={`img-icons`} src={icons.reconnect} style={{ marginRight: '5px' }} />
-                                    Connect New
+                                    Next
                                 </button>
                             }
 

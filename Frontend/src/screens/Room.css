@@ -168,19 +168,6 @@
       }
     }
   }
-
-  .message-wrapper {
-    &.same-user {
-      padding: 0px;
-      margin-right: 40px;
-      .message {
-        border-radius: 12px;
-      }
-    }
-    &.reverse {
-      margin-left: 40px;
-    }
-  }
   
   .mention {
     color: #7c80fd;

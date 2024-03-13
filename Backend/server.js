@@ -45,7 +45,7 @@ io.on('connection', (socket) => {
       females.push(userData)
     }else{
       if (males.length <= 1) {
-        if (males.length >= 2) {
+        if (males[0]?.socketId == socket.id || males.length >= 2) {
           males = []
           roomId = 0
         }

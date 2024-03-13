@@ -31,3 +31,20 @@
         box-shadow: 0 0 0 5px #ff634762;
     }
 }
+
+
+.message-wrapper {
+    &.same-user {
+      padding: 0px;
+      margin-left: 40px;
+      /* .message {
+        border-radius: 12px;
+      } */
+    }
+    &.same-user.reverse {
+      margin-right: 40px;
+    }
+    &.reverse {
+      margin-left: 40px;
+    }
+  }
