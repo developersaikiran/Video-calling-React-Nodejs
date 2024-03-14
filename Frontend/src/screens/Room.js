@@ -94,7 +94,7 @@ const Room = () => {
 
     // Function to toggle microphone status
     const toggleMic = async () => {
-        if (micStatus === 'on') {
+        if (micStatus == 'on') {
             await myStream.getAudioTracks().forEach(track => track.enabled = false);
             setMicStatus('off');
         } else {
@@ -105,12 +105,14 @@ const Room = () => {
 
     // Function to toggle video status
     const toggleVideo = () => {
-        if (videoStatus === 'on') {
+        // myStream.getVideoTracks().forEach(track => track.enabled = false);
+        if (videoStatus == 'on') {
             myStream.getVideoTracks().forEach(track => track.enabled = false);
+            setVideoStatus('off');
         } else {
             myStream.getVideoTracks().forEach(track => track.enabled = true);
+            setVideoStatus('on');
         }
-        setVideoStatus(prev => prev === 'on' ? 'off' : 'on');
     };
 
     useEffect(() => {
