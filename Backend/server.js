@@ -92,4 +92,8 @@ io.on('connection', (socket) => {
     console.log({ imageUrl, name, message, roomId, senderId });
     io.to(roomId).emit('receive:message', ({ imageUrl, name, message, roomId, senderId }))
   })
+
+  socket.on('send:new-stream', ({ newStream, roomId, senderId }) => {
+    io.to(roomId).emit('receive:new-stream', ({ newStream, roomId, senderId }))
+  })
 })

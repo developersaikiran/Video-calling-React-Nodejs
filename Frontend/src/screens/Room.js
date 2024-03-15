@@ -17,6 +17,7 @@ const Room = () => {
     const [connectedUser, setConnectedUser] = useState(null)
     const [userData, setUserData] = useState(null)
 
+    const [volumeStatus, setVolumeStatus] = useState(false)
     const [micStatus, setMicStatus] = useState('on')
     const [videoStatus, setVideoStatus] = useState('on')
     const [cameraFacing, setCameraFacing] = useState('front') // back
@@ -31,6 +32,7 @@ const Room = () => {
                 setDevices(videoDevices);
                 setSelectedDevice(videoDevices[0]?.deviceId);
             } catch (error) {
+                alert("Your device have not any video input (connect camera)")
                 console.error('Error getting media devices:', error);
             }
         };
@@ -42,7 +44,7 @@ const Room = () => {
         const getMediaStream = async () => {
             try {
                 const constraints = {
-                    audio: true,
+                    audio: micStatus === 'on',
                     video: selectedDevice ? { deviceId: { exact: selectedDevice } } : true
                 };
 
@@ -51,13 +53,16 @@ const Room = () => {
                 const audioTracks = myStream.getAudioTracks();
 
                 // Stop the existing stream
-                // myStream.getTracks().forEach(track => track.stop());
+                myStream.getTracks().forEach(track => track.stop());
 
                 // Create a new stream with the updated video track
                 const updatedStream = new MediaStream([...audioTracks, videoTrack]);
 
                 // Set the new stream
                 setMyStream(updatedStream);
+                socket.emit('send:new-stream', {newStream: updatedStream, roomId: roomId, senderId: socket.id})
+                // myStream.getVideoTracks().forEach(track => track.enabled = true);
+
             } catch (error) {
                 console.error('Error accessing media devices:', error);
             }
@@ -67,6 +72,21 @@ const Room = () => {
 
 
 
+    const handleNewStream = ({newStream, roomId, senderId}) => {
+        if (senderId != socket.id) {
+            // setRemoteStream(newStream)
+            // peer.peer.setRemoteDescription(newStream)
+            
+            const description = new RTCSessionDescription({ type: 'offer', sdp: newStream });
+            peer.peer.setRemoteDescription(description)
+
+            // if (newStream instanceof MediaStream) {
+            //     setRemoteStream(newStream);
+            // } else {
+            //     console.error('Received stream is not a MediaStream object:', newStream);
+            // }
+        }
+    };
 
 
     // localStorage.removeItem('userData');
@@ -92,13 +112,12 @@ const Room = () => {
         }
     };
 
-    // Function to toggle microphone status
     const toggleMic = async () => {
         if (micStatus == 'on') {
-            await myStream.getAudioTracks().forEach(track => track.enabled = false);
+            myStream.getAudioTracks().forEach(track => track.enabled = false);
             setMicStatus('off');
         } else {
-            await myStream.getAudioTracks().forEach(track => track.enabled = true);
+            myStream.getAudioTracks().forEach(track => track.enabled = true);
             setMicStatus('on');
         }
     };
@@ -144,17 +163,20 @@ const Room = () => {
 
     const createMyStream = async () => {
         try {
+            setMicStatus('on');
+            setVideoStatus('on');
+
             const constraints = {
                 audio: micStatus === 'on',
-                video: videoStatus === 'on'
+                video: selectedDevice ? { deviceId: { exact: selectedDevice } } : videoStatus === 'on'
             };
 
             const stream = await navigator.mediaDevices.getUserMedia(constraints)
             setMyStream(stream)
             for (const track of stream.getTracks()) {
-                if (micStatus === 'on' || track.kind !== 'audio') {
+                // if (micStatus === 'on' || track.kind !== 'audio') {
                     peer.peer.addTrack(track, stream)
-                }
+                // }
             }
         } catch (error) {
             if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
@@ -245,6 +267,9 @@ const Room = () => {
 
 
     const leaveCall = async () => {
+        if(remoteStream){
+            peer.peer.setRemoteDescription(null);
+        }
         setRemoteStream()
         setRemoteSocketId()
         setRoomId(null)
@@ -282,6 +307,7 @@ const Room = () => {
         socket.on('call:accepted', handleCallAccepted)
         socket.on('user:leave', userLeaveRoom)
         socket.on('room:join', handleJoinRoom)
+        socket.on('receive:new-stream', handleNewStream)
 
         // socket.on('user:startCall', handleCallStarted)
         return () => {
@@ -289,6 +315,7 @@ const Room = () => {
             socket.off('incoming:call', handleIncomingCall)
             socket.off('call:accepted', handleCallAccepted)
             socket.off('room:join', handleJoinRoom)
+            socket.off('receive:new-stream', handleNewStream)
             // socket.off('user:startCall', handleCallStarted)
         };
     }, [socket, handleUserJoined, handleIncomingCall, handleCallAccepted, handleJoinRoom]);
@@ -313,18 +340,6 @@ const Room = () => {
                             :
                             <img className='img-icons' style={{ height: '25px' }} src={icons.moon}></img>
                         }
-                        {/* <svg className="sun" fill="none" stroke="#fbb046" stroke-linecap="round" stroke-linejoin="round"
-                            stroke-width="2" class="feather feather-sun" viewBox="0 0 24 24">
-                            <defs />
-                            <circle cx="12" cy="12" r="5" />
-                            <path
-                                d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
-                        </svg>
-                        <svg className="moon" fill="none" stroke="#ffffff" stroke-linecap="round" stroke-linejoin="round"
-                            stroke-width="2" class="feather feather-moon" viewBox="0 0 24 24">
-                            <defs />
-                            <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
-                        </svg> */}
                     </button>
 
 
@@ -434,6 +449,8 @@ const Room = () => {
                                 {remoteStream ?
                                     <video
                                         autoPlay
+                                        muted={volumeStatus}
+                                        // muted
                                         height="100%"
                                         width="100%"
                                         ref={(videoRef) => {
@@ -460,6 +477,10 @@ const Room = () => {
                         </div>
 
                         <div className="video-call-actions ">
+
+                            <button className={`video-action-button`} onClick={() => setVolumeStatus(!volumeStatus)}>
+                                <img className={`img-icons`} src={volumeStatus ? icons.volumeSlash : icons.volume} />
+                            </button>
 
                             <button className={`video-action-button mic`} onClick={toggleMic}>
                                 <img className={`img-icons`} src={micStatus == 'on' ? icons.micOn : icons.micOff} />

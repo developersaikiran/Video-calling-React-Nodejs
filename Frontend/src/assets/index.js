@@ -8,4 +8,6 @@ export const icons = {
     hangupCall: require('./icons/hangup-call.png'),
     sun: require('./icons/sun.png'),
     moon: require('./icons/moon.png'),
+    volume: require('./icons/volume.png'),
+    volumeSlash: require('./icons/volume-slash.png'),
 }

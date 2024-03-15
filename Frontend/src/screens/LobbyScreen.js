@@ -19,29 +19,29 @@ const LobbyScreen = () => {
   });
 
   const handleSubmitForm = () => {
-    // if (name == '') {
-    //   setShowToast({
-    //     show: true,
-    //     title: 'Required',
-    //     message: 'Enter name please.',
-    //   })
-    // } else if (gender == '') {
-    //   setShowToast({
-    //     show: true,
-    //     title: 'Required',
-    //     message: 'Select Gender.',
-    //   })
-    // } else if (lookingFor == '') {
-    //   setShowToast({
-    //     show: true,
-    //     title: 'Required',
-    //     message: 'Select looking for.',
-    //   })
-    // } else {
-    localStorage.setItem('userData', JSON.stringify({ name, gender, lookingFor, profile }))
-    console.log({ userData: JSON.parse(localStorage.getItem('userData')) });
-    socket.emit('room:join', { name, gender, lookingFor, profile })
-    // }
+    if (name == '') {
+      setShowToast({
+        show: true,
+        title: 'Required',
+        message: 'Enter name please.',
+      })
+    } else if (gender == '') {
+      setShowToast({
+        show: true,
+        title: 'Required',
+        message: 'Select Gender.',
+      })
+    } else if (lookingFor == '') {
+      setShowToast({
+        show: true,
+        title: 'Required',
+        message: 'Select looking for.',
+      })
+    } else {
+      localStorage.setItem('userData', JSON.stringify({ name, gender, lookingFor, profile }))
+      console.log({ userData: JSON.parse(localStorage.getItem('userData')) });
+      socket.emit('room:join', { name, gender, lookingFor, profile })
+    }
   };
 
 
